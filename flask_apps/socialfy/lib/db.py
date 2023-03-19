@@ -1,5 +1,19 @@
-from pydal import DAL 
+from elasticsearch import Elasticsearch
+import elasticsearch_dsl 
+import os
 from decouple import config
 
-db  = DAL(f"postgres://{config('DB_USER')}:{config('DB_PASS')}@{config('DB_HOST')}:{config('DB_PORT')}/{config('DB_NAME')}")
+#Elasticsearch Instance
+es = Elasticsearch([config('ES_HOST')], verify_certs=False)
 
+def init_indices():
+    for indices in config("IDXCONF"):
+         es.indices.create(index=indices, ignore=400)
+
+
+    
+
+if __name__ == "__main__":
+   init_indices()
+
+ 
