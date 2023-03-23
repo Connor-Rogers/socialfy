@@ -1,7 +1,9 @@
 #generate user feed
 class feed:
-    pass
-def song_post():
-    pass
-def playlist_post():
-    pass
+    def __init__(self) -> None:
+        pass
+    def get_feed(self, page):
+        pass
+
+
+
