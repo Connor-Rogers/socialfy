@@ -65,7 +65,7 @@ class Post:
             .query("match", friend_id = friend_id) \
             .query("match", post_id= post_id)
         response = s.execute() 
-        if response.hits.total > 0:
+        if response.hits.total["value"] > 0:
             like = {
                 "friend_id": friend_id,
                 "post_id" : post_id,
@@ -85,5 +85,5 @@ class Post:
         s = Search(using=es, index=LIKE_INDEX) \
             .query("match", post_id= post_id)
         response = s.execute() 
-        return response.hits.total
+        return response.hits.total["value"]
     

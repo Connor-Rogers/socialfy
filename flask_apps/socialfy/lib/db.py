@@ -2,15 +2,16 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search 
 import logging 
 from decouple import config
+import json
 
 #Elasticsearch Instance
 es = Elasticsearch([config('ES_HOST')], verify_certs=False)
 #TODO: Make these modifable from .env
-POST_INDEX = "post"
-COMMENT_INDEX = "comment"
-USER_INDEX = "user"
-LIKE_INDEX = "like"
-SONG_INDEX = "song"
+POST_INDEX = "posts"
+COMMENT_INDEX = "comments"
+USER_INDEX = "users"
+LIKE_INDEX = "likes"
+SONG_INDEX = "songs"
 
 class db:
     '''
@@ -18,12 +19,12 @@ class db:
     def commit_document(index, doc) -> bool:
         '''
         '''
-        try:
-            es.index(index=index, body=doc)
-            return True
-        except:
-            logging.critical("Elasticsearch Failed")
-            return False
+        # try:
+        es.index(index=index, body=doc)
+        return True
+        # except:
+        #     logging.critical("Elasticsearch Failed")
+        #     return False
 
     def delete_document(type, user= None, id = None, cid = None) -> bool:
         '''
@@ -120,8 +121,11 @@ class db:
 def init_indices():
     '''
     '''
+    es_mappings = json.loads(config("IDXCONF"))
+    print(es_mappings)
     try:
-        for indices in config("IDXCONF"):
+        
+        for indices in es_mappings:
             es.indices.create(index=indices, ignore=400)
             logging.info("Elasicsearch Initialized")
         return True
@@ -134,6 +138,6 @@ def init_indices():
 
 
 if __name__ == "__main__":
-   db.init_indices()
+   init_indices()
 
  

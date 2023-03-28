@@ -2,6 +2,7 @@
 import tekore as tk
 from app import spotify
 from flask import Blueprint, session
+from lib.user import user
 from lib.session import cred, require_login, users, auths
 from flask import redirect, request
 
@@ -14,8 +15,8 @@ login_msg = f'You can {in_link} or {out_link}'
 @auth.route('/secure', methods=['GET'])
 @require_login
 def main(token):
-    user = session.get('user', None)
-    page = f'User ID: {user}<br>{login_msg}'
+    page = f'User ID: {token}<br>{login_msg}'
+    user(token).register_user()
     try:
         with spotify.token_as(token):
             playback = spotify.playback_currently_playing()
@@ -55,4 +56,4 @@ def logout():
     uid = session.pop('user', None)
     if uid is not None:
         users.pop(uid, None)
-    return redirect('/secure', 307)
+    return redirect('/', 307)

@@ -4,6 +4,7 @@ from decouple import config
 
 spotify = tk.Spotify()
 
+
 def app_factory() -> Flask:
     app = Flask(__name__)
     app.config['SECRET_KEY'] = config('SECRET_KEY')
@@ -14,8 +15,9 @@ def app_factory() -> Flask:
     from blueprints.auth_bp import auth
     app.register_blueprint(auth)
 
-    # from blueprints import main
-    # app.register_blueprint(main)
+
+    from blueprints.main_bp import main
+    app.register_blueprint(main)
      
     
     return app
