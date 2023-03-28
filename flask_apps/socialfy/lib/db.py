@@ -7,8 +7,8 @@ import json
 #Elasticsearch Instance
 es = Elasticsearch([config('ES_HOST')], verify_certs=False)
 #TODO: Make these modifable from .env
+
 POST_INDEX = "posts"
-COMMENT_INDEX = "comments"
 USER_INDEX = "users"
 LIKE_INDEX = "likes"
 SONG_INDEX = "songs"
@@ -37,10 +37,6 @@ class db:
                     .query("match", id=id)
                 s.delete()
                 
-                s = Search(using=es, index=COMMENT_INDEX) \
-                    .query("match", post_id=id)
-                s.delete()
-
                 s = Search(using=es, index=LIKE_INDEX) \
                     .query("match", post_id=id)
                 s.delete()
@@ -49,19 +45,6 @@ class db:
             except:
                 logging.critical("Elasticsearch Failed")
                 return False
-            
-        #if deleting a coment delete the document that contains both a matching post id and comment_id, and user ownership of the comment
-        if (type == COMMENT_INDEX) and cid:
-            try:
-                    s = Search(using=es, index=COMMENT_INDEX) \
-                        .query("match", post_id=id) \
-                        .query("match", id=cid)
-                    s.delete()
-                    return True
-            except:
-                    logging.critical("Elasticsearch Failed")
-                    return False
-            
         #if user: deletes all documents associated with the user
         if type == USER_INDEX:
             try:
@@ -73,10 +56,6 @@ class db:
                         .query("match", friend_id=id)
                     s.delete()
                     
-                    s = Search(using=es, index=COMMENT_INDEX) \
-                        .query("match", friend_id=id)
-                    s.delete()
-
                     s = Search(using=es, index=LIKE_INDEX) \
                         .query("match", friend_id=id)
                     s.delete()
