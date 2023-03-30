@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <script>
+        function getUser() {
+            fetch('/secure/user/self', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('User data:', data);
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+        }
+
+        function getFriend() {
+            const friendId = document.getElementById('friendId').value;
+            fetch('/secure/user/other', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: friendId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Friend data:', data);
+            })
+            .catch(error => {
+                console.error('Error fetching friend data:', error);
+            });
+        }
+
+        // Add more functions to test other endpoints here
+    </script>
+</head>
+<body>
+    <h1>API Test</h1>
