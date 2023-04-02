@@ -8,7 +8,7 @@ spotify = tk.Spotify()
 def app_factory() -> Flask:
     app = Flask(__name__)
     app.config['SECRET_KEY'] = config('SECRET_KEY')
-
+    
     from blueprints.api_bp import api
     app.register_blueprint(api)
 
