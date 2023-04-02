@@ -102,15 +102,14 @@ def init_indices():
     '''
     es_mappings = json.loads(config("IDXCONF"))
     print(es_mappings)
-    try:
+  
         
-        for indices in es_mappings:
-            es.indices.create(index=indices, ignore=400)
-            logging.info("Elasicsearch Initialized")
-        return True
-    except Exception:
-        logging.critical("Elasticsearch Failed")
-        return False
+    for indices in es_mappings:
+        es.indices.create(index=indices, ignore=400)
+        logging.info("Elasicsearch Initialized")
+    return True
+
+
 
             
 

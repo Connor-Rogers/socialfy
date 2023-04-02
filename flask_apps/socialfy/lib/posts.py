@@ -1,5 +1,5 @@
 import uuid, datetime
-from lib.db import db, POST_INDEX, COMMENT_INDEX, LIKE_INDEX, es
+from lib.db import db, POST_INDEX, LIKE_INDEX, es
 from lib.user import user
 import tekore as tk 
 from elasticsearch_dsl import Search
