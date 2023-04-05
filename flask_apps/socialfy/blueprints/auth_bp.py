@@ -15,24 +15,21 @@ login_msg = f'You can {in_link} or {out_link}'
 @auth.route('/secure', methods=['GET'])
 @require_login
 def main(token):
-    page = f'User ID: {token}<br>{login_msg}'
     user(token).register_user()
-    try:
-        with spotify.token_as(token):
-            playback = spotify.playback_currently_playing()
-
-        item = playback.item.name if playback else None
-        page += f'<br>Now playing: {item}'
-    except tk.HTTPError:
-        page += '<br>Error in retrieving now playing!'
-    return page
+    return redirect('/secure/app', 200)
+ 
+    
 
 @auth.route('/login', methods=['GET'])
 def login():
     if 'user' in session:
         return redirect('/secure', 307)
 
-    scope = tk.scope.user_read_currently_playing
+    scope =tk.Scope() + tk.scope.user_library_modify \
+    + tk.scope.user_read_currently_playing \
+    + tk.scope.user_read_private \
+    + tk.scope.user_top_read \
+    + tk.scope.playlist_modify_private
     auth = tk.UserAuth(cred, scope)
     auths[auth.state] = auth
    

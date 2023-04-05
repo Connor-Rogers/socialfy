@@ -1,12 +1,13 @@
 from flask import Blueprint, jsonify, redirect, request, make_response
 from lib.session import require_login, users, auths
 from jsonschema import validate
+from lib.feed import feed
+from lib.db import es
 from lib.user import user
 from lib.posts import Post
 import tekore as tk
 
 api = Blueprint('api_bp', __name__)
-
 
 # Social API Blueprint
 
@@ -210,24 +211,55 @@ def like_post(context):
 '''
 Feed Generation Endpoints
 '''
-# TODO:Generate Feed Endpoint
-api.route('/secure/feed')
+@api.route('/secure/feed/<page>')
 @require_login
-def get_feed(context):
-    pass
+def get_feed(context, page):
+    return jsonify(feed(context).get_feed(page)), 200
+
 
 '''
 Other Endpoints 
 '''
 # TODO:Search for a Song or Playlist
-api.route('/secure/song/search')
+@api.route('/secure/song/search')
 @require_login
 def search(context):
-    pass
+    schema = {
+        "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                },
+        "required": ["query"],
+    }
+    try:
+        query = request.json
+        validate(instance=query, schema=schema)
+        song_uri = Post(context).search_song(query.get("query"))
+        return jsonify({"status":"error", "song_uri": song_uri}),500
+
+    except:
+        return jsonify({"status":"error", "song_uri": "None"}),500
+    
 
 # TODO:Add a Song from a Post
 @api.route("/secure/song/add")
 def add_recomendation(context):
     '''Add a song from a post to your library (probably just to a playlist called socialfy)'''
-    pass
+    schema = {
+        "type": "object",
+                "properties": {
+                    "song_uri": {"type": "string"},
+                },
+        "required": ["song_uri"],
+    }
+    try:
+        query = request.json
+        validate(instance=query, schema=schema)
+        if user(context).add_song(query.get("song_uri")): 
+            return jsonify({"status":"success"}), 200
+        return jsonify({"status":"error"}),500
+
+    except:
+        return jsonify({"status":"error"}),500
+    
 

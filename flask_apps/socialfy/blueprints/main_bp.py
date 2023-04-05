@@ -6,7 +6,7 @@ main = Blueprint('main_bp', __name__)
 
 
 landing_directory= os.getcwd()+ f'/../../frontend/landing/build/static'
-
+app_directory = os.getcwd()+ f'/../../frontend/socialfy/build/static'
 
 @main.route('/')
 def landing():
@@ -30,19 +30,18 @@ def app(context):
     '''
     Serves the Socialfy Application once Verified
     '''
-    path= os.getcwd()+ f'/../../frontend/landing/build'
+    path= os.getcwd()+ f'/../../frontend/socialfy/build'
     print(path)
     return send_from_directory(directory=path,path='index.html')
 
-@main.route('/secure/static/<folder>/<file>')
+@main.route('/secure/app/static/<folder>/<file>')
 @require_login
-def app_assets(context):
+def app_assets(context, folder, file):
     '''
     Serves the Socialfy Application once Verified
     '''
-    path= os.getcwd()+ f'/../../frontend/landing/build'
-    print(path)
-    return send_from_directory(directory=path,path='index.html')
+    path = folder +'/'+file
+    return send_from_directory(directory=app_directory,path=path)
 
 @main.route('/secure/api/app')
 @require_login

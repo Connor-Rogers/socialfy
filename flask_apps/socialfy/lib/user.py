@@ -15,6 +15,7 @@ class user:
     def register_user(self) ->bool:
         '''
         '''
+        
         s = Search(using = es, index = USER_INDEX) \
                 .query("match", id=self.spotify.current_user().id)
         if s.execute().hits.total["value"] == 0:
@@ -24,8 +25,13 @@ class user:
                 "display_name": self.spotify.current_user().display_name,
                 "friends" : []
                 }
+            try:
+                self.spotify.playlist_create(user_id=self.spotify.current_user().id, name="Socialfy", public=False, description="Your Liked Songs from Socialfy")
+            except:
+                print("User Allready Has Socialfy Playlist")
             return db.commit_document(USER_INDEX, user)
         return False
+        
     def purge_user(self) ->bool:
         return db.delete_document(self.token, USER_INDEX)
 
@@ -72,10 +78,10 @@ class user:
         try:
             s = Search(using = es, index = USER_INDEX) \
                         .query("match", id = self.spotify.current_user().id)
-        
-            if s.execute().hits.total["value"] == 0:
+            response = s.execute()
+            if response.hits.total["value"] == 0:
                 return []
-            s.execute()[0].get["friends"]
+            return response[0].get["friends"]
         except:
              logging.warn("unable to get friends")
              return []
@@ -84,11 +90,26 @@ class user:
         '''
         '''
         try:
-            s = Search(using = es, index = USER_INDEX) \
-                .query("match", id = self.spotify.current_user().id)
-            return s.execute()[0].get["id"]
+            return self.spotify.current_user().id  
         except:
-            logging.warn("unable to get friends")
+            logging.warn("unable to get friend id")
             return None
+    
+    def add_song(self, song_uri) -> bool:
+        'Add a song to library'
+        playlist_id = None
+        playlists = self.spotify.playlists(user_id=self.spotify.current_user().id).items
+        for p in playlists:
+            if p.name == "Socialfy":
+                playlist_id = p.id
+        if playlist_id is None:
+            return False
+        try:
+            self.spotify.playlist_add(playlist_id= playlist_id, uris=song_uri)
+            return True 
+        except:
+            return False 
+                
+
 
  
