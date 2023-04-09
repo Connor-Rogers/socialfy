@@ -1,6 +1,6 @@
 from functools import wraps
 import tekore as tk
-from flask import abort, session
+from flask import session, redirect
 from decouple import config
 
 conf = (config('CLIENT_ID'), config("SECRET"), config("URI"))
@@ -17,7 +17,8 @@ def require_login(f):
     # Return early if no login or old session
         if user is None or token is None:
             session.pop('user', None)
-            abort(401)
+            return redirect('/login')
+
         if token.is_expiring:
             token = cred.refresh(token)
             users[user] = token

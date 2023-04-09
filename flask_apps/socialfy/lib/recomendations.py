@@ -4,7 +4,7 @@ import random
 
 def get_recomendation(token) -> dict | None :
     '''
-    Get Recomendationsv (V1): Make a Recomendation Post based on Spotify's get_recomendation endpoint.
+    Get Recomendations (V1): Make a Recomendation Post based on Spotify's get_recomendation endpoint.
     @param: token (str): Any users spotify oauth access token 
     @returns post (dict): Dictionary of assembled recomendation post from socialfy or (None) if recomendation is unable to be gathered
 
@@ -34,7 +34,7 @@ def get_recomendation(token) -> dict | None :
             "friend_name" : "Socialfy",
             "song_name" : recomendation.name,
             "song_arist" : recomendation.artists[0].name,
-            "song_href": recomendation.href,
+            "song_uri": recomendation.uri,
             "song_album_art":recomendation.album.images[0].url,
             "text_blurb" : "Your Latest Recomendation From Socialfy.",
             "likes" : "null"

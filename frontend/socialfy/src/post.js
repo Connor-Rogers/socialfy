@@ -1,40 +1,82 @@
 import React, { useState } from 'react';
 import '@mui/icons-material'
 
-const Post = ({ post }) => {
-  const [bookmarked, setBookmarked] = useState(false);
-  const handleBookmark = async () => {
-    const payload = {
-      "track_id": post.id,
-    };
-  
+const Post = ({ post, onDelete, innerRef }) => {
+  const [likes, setLikes] = useState(post.likes);
+  const [liked, setLiked] = useState(false);
+  // Bookmarking 
+  const handleBookmark = async () => { 
     try {
-      const response = await fetch('https://your-api-endpoint/bookmarks', {
+      const response = await fetch('http://127.0.0.1:5000/secure/song/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({song_uri:post.song_uri}),
       });
-  
       if (!response.ok) {
         throw new Error('Failed to bookmark the post');
       }
   
       const responseData = await response.json();
-      setBookmarked(!); // Toggle the bookmark state only if the request is successful
+       // Toggle the bookmark state only if the request is successful
       console.log('Bookmark response:', responseData);
     } catch (error) {
-      console.error('Error bookmarking the post:', error);
+      console.error('Error bookmarking the song:', error);
     }
   };
+  // Liking
+  const handleLike = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/secure/post/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({post_id:post.id}),
+      });
   
+      if (!response.ok) {
+        console.log(JSON.stringify({post_id:post.id}));
+        throw new Error('Failed to update the like count');
+      }
+      
+      const updatedPost = await response.json();
+      console.log(response)
+      setLikes(updatedPost.likes);
+     
+      setLiked(updatedPost.status);
+    } catch (error) {
+      console.error('Error updating the like count:', error);
+    }
+  };
+  // Deleting Posts
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/secure/post/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({post_id:post.id}),
+      });
 
+
+      if (!response.ok) {
+        throw new Error('Failed to delete the post');
+      }
+
+      onDelete(post.id);
+    } catch (error) {
+      console.error('Error deleting the post:', error);
+    }
+  };
   return (
-    <div className="post">
+    <div className="post" ref={innerRef}>
       <div className="post-header">
-        <span className="username">{post.friend_id}</span>
-      </div>
+        <span className="username">{post.friend_name}</span>
+         {post.friend_name === post.current_user ? (<button onClick={handleDelete} className="delete-btn">Delete</button>) : null}
+        </div>
       <img src={post.song_album_art} alt={post.text_blurb} />
       <p>{post.text_blurb}</p>
       <p>
@@ -43,9 +85,10 @@ const Post = ({ post }) => {
       </p>
       <div className="post-actions">
       {post.likes !== "null" ? (
-          <button onClick={() => console.log('Liked!')}>
-            Like ({post.likes}) </button> ) : null}
-         <button onClick={() => handleBookmark}> Bookmark </button>
+         <button onClick={handleLike} className={liked ? 'liked' : ''}>
+         {likes} {likes === 1 ? 'Like' : 'Likes'}
+       </button>) : null}
+         <button onClick={() => handleBookmark()}> Bookmark </button>
       </div>
     </div>
   );

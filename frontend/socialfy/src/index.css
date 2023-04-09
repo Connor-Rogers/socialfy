@@ -72,3 +72,34 @@ background-color: #0056b3;
 .post-actions {
   margin-top: 1rem;
 }
+.create-post {
+  margin-bottom: 2rem;
+}
+
+.create-post form {
+  display: flex;
+  flex-direction: column;
+}
+
+.create-post input,
+.create-post textarea,
+.create-post button {
+  margin-bottom: 1rem;
+}
+
+.create-post textarea {
+  resize: none;
+  min-height: 100px;
+}
+
+.liked {
+  background-color: #ff0026;
+  color: #fff;
+}
+.delete-btn {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}

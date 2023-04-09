@@ -1,15 +1,14 @@
-from lib.db import es, USER_INDEX
-from lib.db import db
+from lib.db import DB, es, USER_INDEX
 from elasticsearch_dsl import Search
-import logging, uuid, datetime
+import logging, datetime
 import tekore as tk
 # User Profiles, Grab User infromation from spotify, db
-class user:
+class User:
     '''
     '''
     def __init__(self,token) -> None:
         self.spotify = tk.Spotify(token)
-        self.datetime =  str(datetime.datetime.now(datetime.timezone.utc))
+        self.datetime = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     
     
     def register_user(self) ->bool:
@@ -29,11 +28,11 @@ class user:
                 self.spotify.playlist_create(user_id=self.spotify.current_user().id, name="Socialfy", public=False, description="Your Liked Songs from Socialfy")
             except:
                 print("User Allready Has Socialfy Playlist")
-            return db.commit_document(USER_INDEX, user)
+            return DB.commit_document(USER_INDEX, user)
         return False
         
     def purge_user(self) ->bool:
-        return db.delete_document(self.token, USER_INDEX)
+        return DB.delete_document(self.token, USER_INDEX)
 
     def add_friend(self, display_name) -> int:
         '''
@@ -81,7 +80,7 @@ class user:
             response = s.execute()
             if response.hits.total["value"] == 0:
                 return []
-            return response[0].get["friends"]
+            return list(response[0].friends)
         except:
              logging.warn("unable to get friends")
              return []
@@ -100,12 +99,16 @@ class user:
         playlist_id = None
         playlists = self.spotify.playlists(user_id=self.spotify.current_user().id).items
         for p in playlists:
+            print(p.name)
             if p.name == "Socialfy":
                 playlist_id = p.id
+                break
         if playlist_id is None:
             return False
         try:
-            self.spotify.playlist_add(playlist_id= playlist_id, uris=song_uri)
+            song_list = []
+            song_list.append(song_uri)
+            self.spotify.playlist_add(playlist_id= playlist_id, uris=song_list)
             return True 
         except:
             return False 

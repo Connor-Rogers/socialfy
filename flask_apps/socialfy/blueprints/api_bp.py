@@ -1,48 +1,51 @@
-from flask import Blueprint, jsonify, redirect, request, make_response
-from lib.session import require_login, users, auths
+'''
+API BLUEPRINT 
+
+All functional endpoints that handle the flow and alteration of data throughout the Flask Application
+'''
+from flask import Blueprint, jsonify, request
+from lib.session import require_login
 from jsonschema import validate
-from lib.feed import feed
-from lib.db import es
-from lib.user import user
+from lib.feed import Feed
+from lib.user import User
 from lib.posts import Post
 import tekore as tk
 
 api = Blueprint('api_bp', __name__)
-
-# Social API Blueprint
-
 '''
 User/Profile Endpoints
 '''
-
-
 @api.route('/secure/user/self', methods=['GET'])
 @require_login
 def get_user(context):
     '''
-    Gets the Users Profile Image, Display Name, Last Played Song, Url
+    Gets the Users Profile Image, Url and Display Name
+    <param> context:(str) User Oauth Token
+    <returns> JSON Dictionary of Username, Profile image, Spotify Url 
     '''
     client = tk.Spotify(context)
     user = client.current_user()
     image = user.images
     if (len(image) == 0):
-        # TODO: Replace Null Image with a served one
-        image = "null"
+        image = "http://127.0.0.1:5000/secure/app/static/assets/null.png"
     else:
         image = image[0].url
     profile = {
         "username": user.display_name,
         "profile_photo": image,
-        "spotify_url": user.external_urls[0]
+        "spotify_url": user.external_urls
     }
-    return jsonify(profile)
+    return jsonify(profile), 200
 
 
 @api.route("/secure/user/other", methods=["GET", "POST"])
 @require_login
 def get_friend(context):
     '''
-    Gets the Users Profile Image, Display Name, Last Played Song, Url 
+    Gets the Users Profile Image, Url and Display Name
+    <param> context:(str) User Oauth Token
+    <param> JSON Object with user_id
+    <returns> JSON Dictionary of Username, Profile image, Spotify Url 
     '''
     schema = {
         "type": "object",
@@ -62,13 +65,12 @@ def get_friend(context):
         # Get the Public Users Profile Photo if Present
         image = user.images
         if (len(image) == 0):
-            # TODO: Replace Null Image with a served one
-            image = "null"
+            image = "http://127.0.0.1:5000/secure/app/static/assets/null.png"
         else:
             image = image[0].url
         # Output
         profile = {
-            "display_name": user.display_name,
+            "usernamee": user.display_name,
             "profile_photo": image,
             "spotify_url": user.external_urls[0]
         }
@@ -83,14 +85,22 @@ def get_friend(context):
 def get_friends(context):
     '''
     Gets the Friend Dictionary, Including total number of friends and a list of the user ids 
-    Returns Empty List if User doesnt exist or they have no friends
+    <param> context:(str) User Oauth Token
+    <returns> Empty List if User doesnt exist or they have no friends
     '''
-    return jsonify({"friends": user(context).get_friends()}), 400
+    friends_list = User(context).get_friends()
+    return jsonify({"friends":friends_list}), 200
 
 
 @api.route("/secure/user/friends/add")
 @require_login
 def add_friends(context):
+    '''
+    Adds a friend given their display name.
+    <param> context:(str) User Oauth Token
+    <param> JSON object with user_id
+    <returns> Success or Failure HTTP Status 
+    '''
     schema = {
         "type": "object",
                 "properties": {
@@ -102,7 +112,7 @@ def add_friends(context):
         query = request.json
         validate(instance=query, schema=schema)
         # Add The Friend
-        status = user(context).add_friend(query["display_name"])
+        status = User(context).add_friend(query["display_name"])
         if status == 0 or status == 2:
             return "Success", 200
         return "Failure", 400
@@ -112,18 +122,25 @@ def add_friends(context):
 
 @api.route("/secure/user/friends/remove")
 @require_login
+
 def remove_friend(context):
+    '''
+    Removes a friend given their display name.
+    <param> context:(str) User Oauth Token
+    <param> JSON object with display_name
+    <returns> Success or Failure HTTP Status 
+    '''
     schema = {
         "type": "object",
                 "properties": {
-                    "user_id": {"type": "string"},
+                    "display_name": {"type": "string"},
                 },
-        "required": ["user_id"],
+        "required": ["display_name"],
     }
     try:
         query = request.json
         validate(instance=query, schema=schema)
-        status = user(context).remove_friend(query["user_id"])
+        status = User(context).remove_friend(query["display_name"])
         if status == 0 or status == 2:
             return "Sucesss", 200
         return "Failure", 400
@@ -142,6 +159,9 @@ Posting Endpoints
 def make_post(context):
     '''
     Make a post of a chosen song
+    <param> context:(str) User Oauth Token
+    <param> JSON dictionary with the fields song_id and text blurb
+    <returns> Success or Failure HTTP Status 
     '''
     schema = {
         "type": "object",
@@ -167,8 +187,10 @@ def make_post(context):
 @require_login
 def delete_post(context):
     '''
-    Delete a post or generated recomendation, return null if post is not owned by user
-    Deleting removes likes, commentes and post data 
+    Delete a post or generated recomendation, return null if post is not owned by user; deleting removes likes, commentes and post data 
+    <param> context:(str) User Oauth Token
+    <param> JSON dictionary with the fields post_id
+    <returns> Success or Failure HTTP Status
     '''
     schema = {
         "type": "object",
@@ -187,11 +209,14 @@ def delete_post(context):
     except:
         return "Failure", 400
 
-@api.route('/secure/post/like')
+@api.route('/secure/post/like', methods=["GET", "POST"])
 @require_login
 def like_post(context):
     '''
     Like/Unlike a post your allowed to see, return updated likes aswell as the status
+    <param> context:(str) User Oauth Token
+    <param> JSON dictionary with the fields post_id
+    <returns> JSON object with users like status and like counts
     '''
     schema = {
         "type": "object",
@@ -204,26 +229,36 @@ def like_post(context):
         query = request.json
         validate(instance=query, schema=schema)
         post = Post(context)
-        return jsonify({"status": post.like_unlike_post(post_id=query["post_id"]), "likes": post.get_post_likes(post_id=query["post_id"])}), 400
+        return jsonify({"status": post.like_unlike_post(post_id=query["post_id"]), "likes": post.get_post_likes(post_id=query["post_id"])}), 200
     except:
-        return jsonify({"status": False, "likes": 0}), 200
+        return jsonify({"status": False, "likes": 0}), 400
 
 '''
 Feed Generation Endpoints
 '''
-@api.route('/secure/feed/<page>')
+@api.route('/secure/feed/<int:page>', methods=["GET","POST"])
 @require_login
 def get_feed(context, page):
-    return jsonify(feed(context).get_feed(page)), 200
+    '''
+    Retrieves the users personal feed
+    <param> context:(str) User Oauth Token
+    <param> page:(int) Page of users feed requested
+    <returns> JSON list(dict()) of posts in the users feed
+    '''
+    return jsonify(Feed(context).get_feed(page)), 200
 
 
 '''
 Other Endpoints 
 '''
-# TODO:Search for a Song or Playlist
-@api.route('/secure/song/search')
+@api.route('/secure/song/search',methods=["POST"])
 @require_login
 def search(context):
+    '''
+    Allows the user to look up a song
+    <param> context:(str) User Oauth Token
+    <param> JSON dictionary with selected songs artist, url and song name
+    '''
     schema = {
         "type": "object",
                 "properties": {
@@ -235,31 +270,37 @@ def search(context):
         query = request.json
         validate(instance=query, schema=schema)
         song_uri = Post(context).search_song(query.get("query"))
-        return jsonify({"status":"error", "song_uri": song_uri}),500
+        return jsonify(song_uri), 200
 
     except:
         return jsonify({"status":"error", "song_uri": "None"}),500
     
 
 # TODO:Add a Song from a Post
-@api.route("/secure/song/add")
+@api.route("/secure/song/add",methods=["POST"])
+@require_login
 def add_recomendation(context):
-    '''Add a song from a post to your library (probably just to a playlist called socialfy)'''
+    '''
+    Add a song from a post to your library in a album called Socialfy.
+    <param> context:(str) User Oauth Token
+    <param> JSON dictionary with song uri
+    <returns> HTTP Success or Failure
+    '''
+    
     schema = {
         "type": "object",
                 "properties": {
                     "song_uri": {"type": "string"},
                 },
         "required": ["song_uri"],
-    }
+    }  
     try:
         query = request.json
         validate(instance=query, schema=schema)
-        if user(context).add_song(query.get("song_uri")): 
-            return jsonify({"status":"success"}), 200
-        return jsonify({"status":"error"}),500
-
+        if User(context).add_song(query.get("song_uri")): 
+            return  "Success", 200
+        return "Failure", 400
     except:
-        return jsonify({"status":"error"}),500
+         return "Failure", 500
     
 

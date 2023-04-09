@@ -6,28 +6,38 @@ import json
 
 #Elasticsearch Instance
 es = Elasticsearch([config('ES_HOST')], verify_certs=False)
-#TODO: Make these modifable from .env
 
 POST_INDEX = "posts"
 USER_INDEX = "users"
 LIKE_INDEX = "likes"
 SONG_INDEX = "songs"
 
-class db:
+class DB:
     '''
+    Elasticsearch Document Handler Class: 
+    no-arg
     '''
     def commit_document(index, doc) -> bool:
         '''
+        Commit a document to an index of choice
+        <param>: index (str): target index of the document
+        <param>: doc dict() document in dictionary form
+        <returns>: True if Success, False if Failure
         '''
-        # try:
-        es.index(index=index, body=doc)
-        return True
-        # except:
-        #     logging.critical("Elasticsearch Failed")
-        #     return False
+        try:
+            es.index(index=index, body=doc)
+            return True
+        except:
+            logging.critical("Elasticsearch Failed")
+            return False
 
-    def delete_document(type, user= None, id = None, cid = None) -> bool:
+    def delete_document(type, user= None, id = None) -> bool:
         '''
+        Commit a document to an index of choice
+        <param>: type (str): target type of the document
+        <param>: user (str): target user requred to delete a like 
+        <param>: id(str): id of user or post 
+        <returns>: True if Success, False if Failure
         '''
         #if post: delete the post and the associated comments and likes
         if type == POST_INDEX:
@@ -85,37 +95,36 @@ class db:
     
     def get_owner(type, id) -> str:
         '''
-        
+        Get the owner of a post or like 
+        <param>: type (str): target type of the document
+        <param>: id of the post or like
+        <returns>: True if Success, False if Failure
         '''
         try:
             s = Search(using=es, index=type) \
-                        .query("match", id=id) \
-                     
-            return s.execute[0].get("friend_id")
+                    .query("match", id=id) \
+                    
+            return s.execute()[0].friend_id
         except:
-            logging.warn("Unable to search for user")
-            return None
+           logging.warn("Unable to search for user")
+           return None
     
           
 def init_indices():
     '''
+    Initialize the Elasticsearch Indices
+    <returns> True, stack trace if false (because failure must kill the application if this fails)
     '''
     es_mappings = json.loads(config("IDXCONF"))
     print(es_mappings)
   
-        
     for indices in es_mappings:
         es.indices.create(index=indices, ignore=400)
         logging.info("Elasicsearch Initialized")
     return True
 
-
-
-            
-
-
-
 if __name__ == "__main__":
+   #Reintialize the ES instance
    init_indices()
 
  
