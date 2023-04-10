@@ -62,8 +62,9 @@ class Post:
         '''
         s = Search(using=es, index=LIKE_INDEX) \
             .query("match", post_id= post_id)
-        response = s.execute() 
+        response = s.execute()
         return response.hits.total["value"]
+    
     def search_song(self, query) -> dict:
         ''' Search and get the first song_id match'''
         spotify = tk.Spotify(self.token)
@@ -76,3 +77,6 @@ class Post:
         }
         print(track.artists[0].name)
         return response
+    
+
+

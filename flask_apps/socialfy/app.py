@@ -1,7 +1,8 @@
 from flask import Flask
 import tekore as tk 
 from decouple import config
-
+import logging 
+import shutil
 spotify = tk.Spotify()
 
 
@@ -23,5 +24,12 @@ def app_factory() -> Flask:
     return app
 
 if __name__ == '__main__':
+    # Patch Tekore 
+  
+    try:
+        shutil.copy(config('PATCH_SRC'),config('PATCH_DIR'))
+    except: 
+        logging.info("Tekore has allready been patched")
+
     application = app_factory()
-    application.run('127.0.0.1', 5000)
+    application.run('127.0.0.1', 5000, threaded=True)

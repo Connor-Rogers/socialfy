@@ -39,7 +39,7 @@ class Feed:
             "song_uri": track.uri,
             "song_album_art" : track.album.images[0].url,
             "text_blurb" : raw_post.text_blurb,
-            "likes" : Post.get_post_likes(raw_post.id, 0) 
+            "likes" : Post(token).get_post_likes(raw_post.id) 
             } 
             return post
         
