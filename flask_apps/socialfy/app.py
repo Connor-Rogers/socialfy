@@ -3,8 +3,6 @@ import tekore as tk
 from decouple import config
 import logging 
 import shutil
-spotify = tk.Spotify()
-
 
 def app_factory() -> Flask:
     app = Flask(__name__)

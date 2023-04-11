@@ -100,7 +100,6 @@ class Post:
             True if the like is successfully added or removed, False otherwise.
         """
         friend_id = User(self.token).get_friend_id()
-        print(friend_id)
         s = Search(using=es, index=LIKE_INDEX) \
             .query("match", friend_id = friend_id) \
             .query("match", post_id= post_id)
@@ -157,7 +156,6 @@ class Post:
         """
         spotify = tk.Spotify(self.token)
         track = spotify.search(query, types=('track',), limit= 1)[0].items[0]
-        print(track)
         response = {
             "song_name" : track.name,
             "song_artist" : track.artists[0].name,        

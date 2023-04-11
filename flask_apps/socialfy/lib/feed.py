@@ -15,10 +15,7 @@ class Feed:
     def __init__(self, token) -> None:
         self.token = token
         self.user_id = User(token).get_friend_id()
-        friends = User(token).get_friends()
-        if len(friends) == 0:
-            friends.append("000-NoFriends")
-        self.friends = friends 
+        self.friends = User(token).get_friends()
         pass
     def get_feed(self, page)-> list:
         '''
