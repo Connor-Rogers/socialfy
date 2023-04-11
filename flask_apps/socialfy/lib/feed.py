@@ -41,7 +41,7 @@ class Feed:
             return post
         
         feed = []
-        recomendation =  get_recomendation(self.token)
+        
         # Then get the posts of the users friends/self
         q = Q("match", friend_id=self.user_id) | Q("terms", friend_id=self.friends)
         s = Search(using=es, index=POST_INDEX)\
@@ -55,6 +55,9 @@ class Feed:
             max_pages += 1
         elif (4 % raw_feed.hits.total["value"]) != 0:
             max_pages += 1
+        if page > max_pages:
+            return []
+        recomendation =  get_recomendation(self.token)
         #if no posts, but a recomendation 
         if hits == 0 and recomendation is not None: 
             feed.append(recomendation)
