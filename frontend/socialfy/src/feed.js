@@ -1,10 +1,7 @@
 import Post from './post';
 import React, { useEffect, useRef, useCallback } from 'react';
 
-const Feed = ({ posts, fetchPosts }) => {
-  const onDelete = () => {
-    fetchPosts();
-  };
+const Feed = ({ posts, fetchPosts, onDeletePost}) => {
 
   const observer = useRef();
   const lastPostElementRef = useCallback(
@@ -26,7 +23,7 @@ const Feed = ({ posts, fetchPosts }) => {
         <Post
           key={post.id}
           post={post}
-          onDelete={onDelete}
+          onDelete={() => onDeletePost(post.id)}
           innerRef={index === posts.length - 1 ? lastPostElementRef : null}
         />
       ))}

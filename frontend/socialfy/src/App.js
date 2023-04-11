@@ -8,6 +8,10 @@ function App() {
   const [posts, setPosts] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [page, setPage] = useState(0);
+  
+  const deletePost = (postId) => {
+    setPosts(posts.filter((post) => post.id !== postId));
+  };
 
   const fetchPosts = async (pageNumber) => {
     try {
@@ -45,7 +49,7 @@ function App() {
           </div>
         )}
       </header>
-      <Feed posts={posts} fetchPosts={() => fetchPosts(page)} />
+      <Feed posts={posts} fetchPosts={() => fetchPosts(page)} onDeletePost={deletePost}/>
     </div>
   );
 };

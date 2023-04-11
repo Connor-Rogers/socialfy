@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './create_post.css';
 
 const CreatePost = ({ onPostSubmit }) => {
   const [songSearch, setSongSearch] = useState('');
@@ -63,12 +64,13 @@ const CreatePost = ({ onPostSubmit }) => {
       {!selectedSong ? (
         <form onSubmit={handleSongSearch}>
           <input
+            className='input'
             type="text"
             placeholder="Search for a song"
             value={songSearch}
             onChange={(e) => setSongSearch(e.target.value)}
           />
-          <button type="submit">Search</button>
+          <button type="search">Search</button>
         </form>
       ) : (
         <div>

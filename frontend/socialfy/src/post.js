@@ -65,7 +65,6 @@ const Post = ({ post, onDelete, innerRef }) => {
       if (!response.ok) {
         throw new Error('Failed to delete the post');
       }
-
       onDelete(post.id);
     } catch (error) {
       console.error('Error deleting the post:', error);
