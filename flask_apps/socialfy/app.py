@@ -17,17 +17,15 @@ def app_factory() -> Flask:
 
     from blueprints.main_bp import main
     app.register_blueprint(main)
-     
     
-    return app
-
-if __name__ == '__main__':
     # Patch Tekore 
-  
     try:
         shutil.copy(config('PATCH_SRC'),config('PATCH_DIR'))
     except: 
         logging.info("Tekore has allready been patched")
 
+    return app
+
+if __name__ == '__main__':
     application = app_factory()
-    application.run('127.0.0.1', 5000, threaded=True)
+    application.run('0.0.0.0', 80, threaded=True)

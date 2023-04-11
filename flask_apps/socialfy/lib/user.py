@@ -105,23 +105,35 @@ class User:
             1 if the friend request cannot be sent.
             2 if the friend is already a friend of the user.
         """
-        try:
+        
              
-            s = Search(using = es, index = USER_INDEX) \
-                .query("match", display_name=display_name)
-            friend_id = s.execute()[0].get("id")
-            
-            s = Search(using = es, index = USER_INDEX) \
-                .query("match", id=self.user.id)
-            result = s.execute()[0]
-            if friend_id in result.friends:
-                return 2 
-            result["friends"].append(friend_id)
-            es.update(index=USER_INDEX, id=self.user.id, doc = result)
-            return 0
-        except:
-            logging.warn("Unable to add friend")
-            return 1
+        s = Search(using = es, index = USER_INDEX) \
+            .query("match", display_name=display_name)
+        friend_id = s.execute()[0].id
+        
+        s = Search(using = es, index = USER_INDEX) \
+            .query("match", id=self.user.id)
+        result = s.execute()[0]
+        print(friend_id)
+        
+        friends = result.friends
+        if friends is None:
+            friends = []
+            print(friends)
+        elif friend_id in result.friends:
+            return 2
+        friends.append(friend_id)
+        print(friends) 
+        body={"doc": { "date_time" : result.date_time,
+            "display_name": result.display_name,
+            "friends" : list(friends)}}
+        print(body)
+
+        es.update(index=USER_INDEX, id=result.meta.id, body = body)
+        return 0
+        # except:
+        #     logging.warn("Unable to add friend")
+        #     return 1
         
     def remove_friend(self, friend_id) ->int:
         """

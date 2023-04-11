@@ -80,7 +80,7 @@ def get_friend(context):
         return "Failure", 400
 
 
-@api.route("/secure/user/friends")
+@api.route("/secure/user/friends",methods=["GET", "POST"])
 @require_login
 def get_friends(context):
     '''
@@ -92,7 +92,7 @@ def get_friends(context):
     return jsonify({"friends":friends_list}), 200
 
 
-@api.route("/secure/user/friends/add")
+@api.route("/secure/user/friends/add",methods=["GET", "POST"])
 @require_login
 def add_friends(context):
     '''
@@ -108,19 +108,19 @@ def add_friends(context):
                 },
         "required": ["display_name"],
     }
-    try:
-        query = request.json
-        validate(instance=query, schema=schema)
-        # Add The Friend
-        status = User(context).add_friend(query["display_name"])
-        if status == 0 or status == 2:
-            return "Success", 200
-        return "Failure", 400
-    except:
-        return "Failure", 400
+    
+    query = request.json
+    validate(instance=query, schema=schema)
+    # Add The Friend
+    status = User(context).add_friend(query["display_name"])
+    if status == 0 or status == 2:
+        return "Success", 200
+    return "Failure", 400
+#except:
+        #return "Failure", 400
 
 
-@api.route("/secure/user/friends/remove")
+@api.route("/secure/user/friends/remove",methods=["GET", "POST"])
 @require_login
 
 def remove_friend(context):
