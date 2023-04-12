@@ -48,36 +48,37 @@ def get_friend(context):
     <returns> JSON Dictionary of Username, Profile image, Spotify Url 
     '''
     schema = {
-        "type": "object",
-                "properties": {
-                    "user_id": {"type": "string"},
-                },
-        "required": ["user_id"],
+    "type": "object",
+            "properties": {
+                "user_id": {"type": "string"},
+            },
+    "required": ["user_id"],
+}
+
+    # JSON Dictionary Schema
+    query = request.json
+    validate(instance=query, schema=schema)
+    # Create a client with Users Token
+    client = tk.Spotify(context)
+    # Get the Public User
+    user = client.user(query["user_id"])
+    # Get the Public Users Profile Photo if Present
+    image = user.images
+    if (len(image) == 0):
+        image = "http://127.0.0.1:5000/secure/app/static/assets/null.png"
+    else:
+        image = image[0].url
+    # Output
+    profile = {
+        "user_id": user.id,
+        "display_name": user.display_name,
+        "profile_photo": image,
+        "spotify_url": user.href
     }
-    try:
-        # JSON Dictionary Schema
-        query = request.json
-        validate(instance=query, schema=schema)
-        # Create a client with Users Token
-        client = tk.Spotify(context)
-        # Get the Public User
-        user = client.user(query["user_id"])
-        # Get the Public Users Profile Photo if Present
-        image = user.images
-        if (len(image) == 0):
-            image = "http://127.0.0.1:5000/secure/app/static/assets/null.png"
-        else:
-            image = image[0].url
-        # Output
-        profile = {
-            "usernamee": user.display_name,
-            "profile_photo": image,
-            "spotify_url": user.external_urls[0]
-        }
-        return jsonify(profile), 200
-    except:
+    return jsonify(profile), 200
+    #except:
         # Return Error if any validation fails
-        return "Failure", 400
+       # return "Failure", 400
 
 
 @api.route("/secure/user/friends",methods=["GET", "POST"])
@@ -108,16 +109,16 @@ def add_friends(context):
                 },
         "required": ["display_name"],
     }
-    
-    query = request.json
-    validate(instance=query, schema=schema)
-    # Add The Friend
-    status = User(context).add_friend(query["display_name"])
-    if status == 0 or status == 2:
-        return "Success", 200
-    return "Failure", 400
-#except:
-        #return "Failure", 400
+    try:
+        query = request.json
+        validate(instance=query, schema=schema)
+        # Add The Friend
+        status = User(context).add_friend(query["display_name"])
+        if status == 0 or status == 2:
+            return "Success", 200
+        return "Failure", 400
+    except:
+        return "Failure", 400
 
 
 @api.route("/secure/user/friends/remove",methods=["GET", "POST"])
@@ -133,19 +134,19 @@ def remove_friend(context):
     schema = {
         "type": "object",
                 "properties": {
-                    "display_name": {"type": "string"},
+                    "user_id": {"type": "string"},
                 },
-        "required": ["display_name"],
+        "required": ["user_id"],
     }
-    try:
-        query = request.json
-        validate(instance=query, schema=schema)
-        status = User(context).remove_friend(query["display_name"])
-        if status == 0 or status == 2:
-            return "Sucesss", 200
-        return "Failure", 400
-    except:
-        return "Failure", 400
+    
+    query = request.json
+    validate(instance=query, schema=schema)
+    status = User(context).remove_friend(query["user_id"])
+    if status == 0 or status == 2:
+        return "Sucesss", 200
+    return "Failure", 400
+    #except:
+    #     return "Failure", 400
 
 
 '''

@@ -8,7 +8,7 @@ const AddFriend = ({ onAddFriend }) => {
 
     try {
       // Replace with the actual API endpoint to add a friend
-      const response = await fetch('http://127.0.0.1:5000/secure/friend/add', {
+      const response = await fetch('http://socialfy.rogersconnor.com/secure/user/friends/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

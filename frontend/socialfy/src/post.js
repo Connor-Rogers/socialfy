@@ -7,7 +7,7 @@ const Post = ({ post, onDelete, innerRef }) => {
   // Bookmarking 
   const handleBookmark = async () => { 
     try {
-      const response = await fetch('http://127.0.0.1:5000/secure/song/add', {
+      const response = await fetch('http://socialfy.rogersconnor.com/secure/song/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ const Post = ({ post, onDelete, innerRef }) => {
   // Liking
   const handleLike = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/secure/post/like`, {
+      const response = await fetch(`http://socialfy.rogersconnor.com/secure/post/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ const Post = ({ post, onDelete, innerRef }) => {
   // Deleting Posts
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/secure/post/delete`, {
+      const response = await fetch(`http://socialfy.rogersconnor.com/secure/post/delete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

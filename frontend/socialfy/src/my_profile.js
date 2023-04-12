@@ -5,6 +5,7 @@ import './my_profile.css'
 const MyProfile = ({ onClose }) => {
   const [user, setUser] = useState(null);
   const [friends, setFriends] = useState([]);
+  const [friendProfiles, setFriendProfiles] = useState([]);
 
   useEffect(() => {
     fetchUser();
@@ -13,7 +14,7 @@ const MyProfile = ({ onClose }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/secure/user/self');
+      const response = await fetch('http://socialfy.rogersconnor.com/secure/user/self');
       
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
@@ -28,7 +29,7 @@ const MyProfile = ({ onClose }) => {
 
   const fetchFriends = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/secure/user/friends');
+      const response = await fetch('http://socialfy.rogersconnor.com/secure/user/friends');
 
       if (!response.ok) {
         throw new Error('Failed to fetch friends');
@@ -36,19 +37,50 @@ const MyProfile = ({ onClose }) => {
 
       const friendsData = await response.json();
       setFriends(friendsData.friends);
+      console.log(friendsData)
     } catch (error) {
       console.error('Error fetching friends:', error);
     }
   };
+  const fetchOtherUser = async (friendId) => {
+    try {
+      const response = await fetch("http://socialfy.rogersconnor.com/secure/user/other", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id: friendId }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch posts");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      return;
+    }
+  };
+  useEffect(() => {
+    const fetchAllFriendProfiles = async () => {
+      const profiles = await Promise.all(friends.map((friend) => fetchOtherUser(friend)));
+      setFriendProfiles(profiles);
+    };
+
+    if (friends.length > 0) {
+      fetchAllFriendProfiles();
+    }
+  }, [friends]);
 
   const removeFriend = async (friendId) => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/secure/user/friends/remove',{
+      const response = await fetch('http://socialfy.rogersconnor.com/secure/user/friends/remove',{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({"friend_id":friendId}),
+        body: JSON.stringify({"user_id":friendId}),
       });
 
       if (!response.ok) {
@@ -56,9 +88,10 @@ const MyProfile = ({ onClose }) => {
       }
 
       // Refresh the friends list
-      fetchFriends();
+      setFriendProfiles((prevFriendProfiles) => prevFriendProfiles.filter((profile) => profile.user_id !== friendId));
     } catch (error) {
       console.error('Error removing friend:', error);
+      fetchFriends();
     }
   };
 
@@ -77,11 +110,11 @@ const MyProfile = ({ onClose }) => {
       )}
       <AddFriend onAddFriend={handleAddFriend} />
       <ul>
-        {friends.map((friend) => (
-          <li key={friend.id}>
-            <img src={friend.profile_photo} alt="Friend" />
-            <p href={friend.spotify_url}>{friend.display_name}</p>
-            <button onClick={() => removeFriend(friend.id)}>Remove Friend</button>
+      {friendProfiles.map((friendProfile) => (
+          <li key={friendProfile.display_name}>
+            <img src={friendProfile.profile_photo} alt="Friend" />
+            <p href={friendProfile.spotify_url}>{friendProfile.display_name}</p>
+            <button onClick={() => removeFriend(friendProfile.user_id)}>Remove Friend</button>
           </li>
         ))}
       </ul>
