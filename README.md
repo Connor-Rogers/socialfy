@@ -1,4 +1,4 @@
-# Socialfy:Social Music Sharing Platform
+# Socialfy: Social Music Sharing Platform
 Socialfy is a full-stack consumer-social web application designed to enhance the social experience of Spotify users. The platform allows users to share music recommendations, create profiles featuring their favorite music, generate socially-curated playlists, and interact with other users' music tastes. Socialfy aims to provide a seamless user experience for connecting Spotify profiles and engaging with others' musical preferences.
 
 ## Table of Contents
