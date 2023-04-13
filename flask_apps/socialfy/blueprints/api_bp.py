@@ -53,12 +53,12 @@ def get_friend(context):
     <returns> JSON Dictionary of Username, Profile image, Spotify Url 
     '''
     schema = {
-        "type": "object",
-                "properties": {
-                    "user_id": {"type": "string"},
-                },
-        "required": ["user_id"],
-    }
+    "type": "object",
+            "properties": {
+                "user_id": {"type": "string"},
+            },
+    "required": ["user_id"],
+}
     try:
         # JSON Dictionary Schema
         query = request.json
@@ -75,13 +75,14 @@ def get_friend(context):
             image = image[0].url
         # Output
         profile = {
-            "usernamee": user.display_name,
+            "user_id": user.id,
+            "display_name": user.display_name,
             "profile_photo": image,
-            "spotify_url": user.external_urls[0]
+            "spotify_url": user.href
         }
         return jsonify(profile), 200
     except Exception as e:
-        # Return Error if any validation fails
+        #Return Error if any validation fails
         logging.exception(e)
         return "Failure", 400
 
@@ -140,20 +141,19 @@ def remove_friend(context):
     schema = {
         "type": "object",
                 "properties": {
-                    "display_name": {"type": "string"},
+                    "user_id": {"type": "string"},
                 },
-        "required": ["display_name"],
+        "required": ["user_id"],
     }
-    try:
-        query = request.json
-        validate(instance=query, schema=schema)
-        status = User(context).remove_friend(query["display_name"])
-        if status == 0 or status == 2:
-            return "Sucesss", 200
-        return "Failure", 400
-    except Exception as e:
-        logging.exception(e)
-        return "Failure", 500
+    
+    query = request.json
+    validate(instance=query, schema=schema)
+    status = User(context).remove_friend(query["user_id"])
+    if status == 0 or status == 2:
+        return "Sucesss", 200
+    return "Failure", 400
+    #except:
+    #     return "Failure", 400
 
 
 '''

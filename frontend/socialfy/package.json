@@ -2,8 +2,8 @@
   "name": "socialfy",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://127.0.0.1:5000/secure/app",
-  "proxy": "http://127.0.0.1:5000/",
+  "homepage": "http://socialfy.rogersconnor.com/secure/app",
+  "proxy": "http://socialfy.rogersconnor.com/",
   "dependencies": {
     "@apideck/better-ajv-errors": "^0.3.6",
     "@emotion/react": "^11.10.6",

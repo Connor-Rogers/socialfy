@@ -106,34 +106,31 @@ class User:
             2 if the friend is already a friend of the user.
         """
         
-             
-        s = Search(using = es, index = USER_INDEX) \
-            .query("match", display_name=display_name)
-        friend_id = s.execute()[0].id
-        
-        s = Search(using = es, index = USER_INDEX) \
-            .query("match", id=self.user.id)
-        result = s.execute()[0]
-        print(friend_id)
-        
-        friends = result.friends
-        if friends is None:
-            friends = []
-            print(friends)
-        elif friend_id in result.friends:
-            return 2
-        friends.append(friend_id)
-        print(friends) 
-        body={"doc": { "date_time" : result.date_time,
-            "display_name": result.display_name,
-            "friends" : list(friends)}}
-        print(body)
-
-        es.update(index=USER_INDEX, id=result.meta.id, body = body)
-        return 0
-        # except:
-        #     logging.warn("Unable to add friend")
-        #     return 1
+        try:     
+            s = Search(using = es, index = USER_INDEX) \
+                .query("match", display_name=display_name)
+            friend_id = s.execute()[0].id
+            
+            s = Search(using = es, index = USER_INDEX) \
+                .query("match", id=self.user.id)
+            result = s.execute()[0]
+            
+            
+            friends = result.friends
+            if friends is None:
+                friends = []
+                print(friends)
+            elif friend_id in result.friends:
+                return 2
+            friends.append(friend_id)
+            body={"doc": { "date_time" : result.date_time,
+                "display_name": result.display_name,
+                "friends" : list(friends)}}
+            es.update(index=USER_INDEX, id=result.meta.id, body = body)
+            return 0
+        except:
+            logging.warn("Unable to add friend")
+            return 1
         
     def remove_friend(self, friend_id) ->int:
         """
@@ -150,19 +147,23 @@ class User:
         1: Error - Unable to remove friend (Logged warning).
         2: Failure - Friend ID not found in the user's friend list.
         """
-        try:
-            s = Search(using = es, index = USER_INDEX) \
-                .query("match", user_id=self.user.id)
-            result = s.execute()[0]
-            result = result.friends
-            if friend_id not in result:
-                return 2
-            result["friends"].pop(friend_id)
-            es.update(index=USER_INDEX, id=self.token , doc = result)
-            return 0
-        except:
-            logging.warn("Unable to remove friend")
-            return 1
+        # try:
+        s = Search(using = es, index = USER_INDEX) \
+            .query("match", id=self.user.id)
+        result = s.execute()[0]
+        friends = result.friends
+        if friend_id not in friends:
+            return 2
+        friends.remove(friend_id)
+        print(friends)
+        body={"doc": { "date_time" : result.date_time,
+                "display_name": result.display_name,
+                "friends" : list(friends)}}
+        es.update(index=USER_INDEX, id=result.meta.id, body = body)
+        return 0
+        # except:
+        #     logging.warn("Unable to remove friend")
+        #     return 1
     
     def get_friends(self) -> list:
         '''
@@ -177,6 +178,7 @@ class User:
             response = s.execute()
             if response.hits.total["value"] == 0:
                 return []
+            print(list(response[0].friends))
             return list(response[0].friends)
         except:
              logging.warn("unable to get friends")
