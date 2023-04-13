@@ -6,6 +6,7 @@ All functional endpoints that handle the flow and alteration of data throughout 
 from flask import Blueprint, jsonify, request
 from lib.session import require_login
 from jsonschema import validate
+import logging
 from lib.feed import Feed
 from lib.user import User
 from lib.posts import Post
@@ -23,19 +24,23 @@ def get_user(context):
     <param> context:(str) User Oauth Token
     <returns> JSON Dictionary of Username, Profile image, Spotify Url 
     '''
-    client = tk.Spotify(context)
-    user = client.current_user()
-    image = user.images
-    if (len(image) == 0):
-        image = "http://127.0.0.1:5000/secure/app/static/assets/null.png"
-    else:
-        image = image[0].url
-    profile = {
-        "username": user.display_name,
-        "profile_photo": image,
-        "spotify_url": user.external_urls
-    }
-    return jsonify(profile), 200
+    try:
+        client = tk.Spotify(context)
+        user = client.current_user()
+        image = user.images
+        if (len(image) == 0):
+            image = "http://127.0.0.1:5000/secure/app/static/assets/null.png"
+        else:
+            image = image[0].url
+        profile = {
+            "username": user.display_name,
+            "profile_photo": image,
+            "spotify_url": user.external_urls
+        }
+        return jsonify(profile), 200
+    except Exception as e:
+        logging.exception(e)
+        return "Failure", 500
 
 
 @api.route("/secure/user/other", methods=["GET", "POST"])
@@ -75,8 +80,9 @@ def get_friend(context):
             "spotify_url": user.external_urls[0]
         }
         return jsonify(profile), 200
-    except:
+    except Exception as e:
         # Return Error if any validation fails
+        logging.exception(e)
         return "Failure", 400
 
 
@@ -108,16 +114,17 @@ def add_friends(context):
                 },
         "required": ["display_name"],
     }
-    
-    query = request.json
-    validate(instance=query, schema=schema)
-    # Add The Friend
-    status = User(context).add_friend(query["display_name"])
-    if status == 0 or status == 2:
-        return "Success", 200
-    return "Failure", 400
-#except:
-        #return "Failure", 400
+    try:
+        query = request.json
+        validate(instance=query, schema=schema)
+        # Add The Friend
+        status = User(context).add_friend(query["display_name"])
+        if status == 0 or status == 2:
+            return "Success", 200
+        return "Failure", 400
+    except Exception as e:
+        logging.exception(e)
+        return "Failure", 500
 
 
 @api.route("/secure/user/friends/remove",methods=["GET", "POST"])
@@ -144,8 +151,9 @@ def remove_friend(context):
         if status == 0 or status == 2:
             return "Sucesss", 200
         return "Failure", 400
-    except:
-        return "Failure", 400
+    except Exception as e:
+        logging.exception(e)
+        return "Failure", 500
 
 
 '''
@@ -178,8 +186,8 @@ def make_post(context):
         if post.create_post(song=query["song_id"], blurb=query["text_blurb"]):
             return "Success", 200
         return "Failure", 400
-
-    except:
+    except Exception as e:
+        logging.exception(e)
         return "Failure", 500
 
 # TODO:Delete Post Endpoint
@@ -206,8 +214,9 @@ def delete_post(context):
         if post.delete_post(post_id=query["post_id"]):
             return "Success", 200
         return "Failure", 400
-    except:
-        return "Failure", 400
+    except Exception as e:
+        logging.exception(e)
+        return "Failure", 500
 
 @api.route('/secure/post/like', methods=["GET", "POST"])
 @require_login
