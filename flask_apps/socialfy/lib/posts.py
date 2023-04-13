@@ -1,9 +1,10 @@
-import uuid, datetime
+import uuid
+import datetime
 from lib.db import DB, POST_INDEX, LIKE_INDEX, es
 from lib.user import User
-import tekore as tk 
+import tekore as tk
 from elasticsearch_dsl import Search
-#create, destroy, comment/like posts
+# create, destroy, comment/like posts
 
 
 class Post:
@@ -36,11 +37,12 @@ class Post:
         Searches for a song on Spotify using the provided query string and returns a dictionary containing
         the song's name, artist, and Spotify URI.
     """
+
     def __init__(self, token) -> None:
-        self.token  = token
+        self.token = token
         self.datetime = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         return
-     
+
     def create_post(self, song, blurb) -> bool:
         """
         Creates a new post with the provided song and blurb text.
@@ -58,15 +60,15 @@ class Post:
         bool
             True if the post is successfully created, False otherwise.
         """
-        post ={
-            "id" : str(uuid.uuid4()),
-            "date_time" : self.datetime,
-            "friend_id" : User(self.token).get_friend_id(),
-            "song_id" : song,
-            "text_blurb" : blurb
-            } 
-        return DB.commit_document(POST_INDEX, post)  
-        
+        post = {
+            "id": str(uuid.uuid4()),
+            "date_time": self.datetime,
+            "friend_id": User(self.token).get_friend_id(),
+            "song_id": song,
+            "text_blurb": blurb
+        }
+        return DB.commit_document(POST_INDEX, post)
+
     def delete_post(self, post_id) -> bool:
         """
         Deletes the post with the provided ID, but only if the user is the owner of the post.
@@ -101,18 +103,18 @@ class Post:
         """
         friend_id = User(self.token).get_friend_id()
         s = Search(using=es, index=LIKE_INDEX) \
-            .query("match", friend_id = friend_id) \
-            .query("match", post_id= post_id)
-        response = s.execute() 
+            .query("match", friend_id=friend_id) \
+            .query("match", post_id=post_id)
+        response = s.execute()
         if response.hits.total["value"] <= 0:
             like = {
                 "friend_id": friend_id,
-                "post_id" : post_id,
+                "post_id": post_id,
                 "date_time": self.datetime
             }
             if DB.commit_document(LIKE_INDEX, doc=like):
-                return True 
-            
+                return True
+
         else:
             DB.delete_document(LIKE_INDEX, user=friend_id, id=post_id)
             return False
@@ -132,10 +134,10 @@ class Post:
             The total number of likes for the post.
         """
         s = Search(using=es, index=LIKE_INDEX) \
-            .query("match", post_id= post_id)
+            .query("match", post_id=post_id)
         response = s.execute()
         return response.hits.total["value"]
-    
+
     def search_song(self, query) -> dict:
         """
         Searches for a song on Spotify using the provided query string.
@@ -155,13 +157,10 @@ class Post:
             - 'song_uri': the Spotify URI for the song.
         """
         spotify = tk.Spotify(self.token)
-        track = spotify.search(query, types=('track',), limit= 1)[0].items[0]
+        track = spotify.search(query, types=('track',), limit=1)[0].items[0]
         response = {
-            "song_name" : track.name,
-            "song_artist" : track.artists[0].name,        
+            "song_name": track.name,
+            "song_artist": track.artists[0].name,
             "song_uri": track.uri
         }
         return response
-    
-
-

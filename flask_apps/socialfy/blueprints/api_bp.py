@@ -16,6 +16,8 @@ api = Blueprint('api_bp', __name__)
 '''
 User/Profile Endpoints
 '''
+
+
 @api.route('/secure/user/self', methods=['GET'])
 @require_login
 def get_user(context):
@@ -29,7 +31,7 @@ def get_user(context):
         user = client.current_user()
         image = user.images
         if (len(image) == 0):
-            image = "http://127.0.0.1:5000/secure/app/static/assets/null.png"
+            image = "null"
         else:
             image = image[0].url
         profile = {
@@ -53,12 +55,12 @@ def get_friend(context):
     <returns> JSON Dictionary of Username, Profile image, Spotify Url 
     '''
     schema = {
-    "type": "object",
-            "properties": {
+        "type": "object",
+        "properties": {
                 "user_id": {"type": "string"},
-            },
-    "required": ["user_id"],
-}
+        },
+        "required": ["user_id"],
+    }
     try:
         # JSON Dictionary Schema
         query = request.json
@@ -82,12 +84,12 @@ def get_friend(context):
         }
         return jsonify(profile), 200
     except Exception as e:
-        #Return Error if any validation fails
+        # Return Error if any validation fails
         logging.exception(e)
         return "Failure", 400
 
 
-@api.route("/secure/user/friends",methods=["GET", "POST"])
+@api.route("/secure/user/friends", methods=["GET", "POST"])
 @require_login
 def get_friends(context):
     '''
@@ -96,10 +98,10 @@ def get_friends(context):
     <returns> Empty List if User doesnt exist or they have no friends
     '''
     friends_list = User(context).get_friends()
-    return jsonify({"friends":friends_list}), 200
+    return jsonify({"friends": friends_list}), 200
 
 
-@api.route("/secure/user/friends/add",methods=["GET", "POST"])
+@api.route("/secure/user/friends/add", methods=["GET", "POST"])
 @require_login
 def add_friends(context):
     '''
@@ -128,9 +130,8 @@ def add_friends(context):
         return "Failure", 500
 
 
-@api.route("/secure/user/friends/remove",methods=["GET", "POST"])
+@api.route("/secure/user/friends/remove", methods=["GET", "POST"])
 @require_login
-
 def remove_friend(context):
     '''
     Removes a friend given their display name.
@@ -145,15 +146,16 @@ def remove_friend(context):
                 },
         "required": ["user_id"],
     }
-    
-    query = request.json
-    validate(instance=query, schema=schema)
-    status = User(context).remove_friend(query["user_id"])
-    if status == 0 or status == 2:
-        return "Sucesss", 200
-    return "Failure", 400
-    #except:
-    #     return "Failure", 400
+    try:
+        query = request.json
+        validate(instance=query, schema=schema)
+        status = User(context).remove_friend(query["user_id"])
+        if status == 0 or status == 2:
+            return "Sucesss", 200
+        return "Failure", 400
+    except Exception as e:
+        logging.exception(e)
+        return "Failure", 400
 
 
 '''
@@ -161,7 +163,6 @@ Posting Endpoints
 '''
 
 
-# TODO:Make Post Endpoint
 @api.route("/secure/post/make", methods=["POST"])
 @require_login
 def make_post(context):
@@ -191,6 +192,8 @@ def make_post(context):
         return "Failure", 500
 
 # TODO:Delete Post Endpoint
+
+
 @api.route("/secure/post/delete", methods=["POST"])
 @require_login
 def delete_post(context):
@@ -218,6 +221,7 @@ def delete_post(context):
         logging.exception(e)
         return "Failure", 500
 
+
 @api.route('/secure/post/like', methods=["GET", "POST"])
 @require_login
 def like_post(context):
@@ -239,13 +243,17 @@ def like_post(context):
         validate(instance=query, schema=schema)
         post = Post(context)
         return jsonify({"status": post.like_unlike_post(post_id=query["post_id"]), "likes": post.get_post_likes(post_id=query["post_id"])}), 200
-    except:
-        return jsonify({"status": False, "likes": 0}), 400
+    except Exception as e:
+        logging.exception(e)
+        return jsonify({"status": False, "likes": 0}), 500
+
 
 '''
 Feed Generation Endpoints
 '''
-@api.route('/secure/feed/<int:page>', methods=["GET","POST"])
+
+
+@api.route('/secure/feed/<int:page>', methods=["GET", "POST"])
 @require_login
 def get_feed(context, page):
     '''
@@ -260,7 +268,9 @@ def get_feed(context, page):
 '''
 Other Endpoints 
 '''
-@api.route('/secure/song/search',methods=["POST"])
+
+
+@api.route('/secure/song/search', methods=["POST"])
 @require_login
 def search(context):
     '''
@@ -281,12 +291,13 @@ def search(context):
         song_uri = Post(context).search_song(query.get("query"))
         return jsonify(song_uri), 200
 
-    except:
-        return jsonify({"status":"error", "song_uri": "None"}),500
-    
+    except Exception as e:
+        logging.exception(e)
+        return jsonify({"status": "error", "song_uri": "None"}), 500
+
 
 # TODO:Add a Song from a Post
-@api.route("/secure/song/add",methods=["POST"])
+@api.route("/secure/song/add", methods=["POST"])
 @require_login
 def add_recomendation(context):
     '''
@@ -295,21 +306,20 @@ def add_recomendation(context):
     <param> JSON dictionary with song uri
     <returns> HTTP Success or Failure
     '''
-    
+
     schema = {
         "type": "object",
                 "properties": {
                     "song_uri": {"type": "string"},
                 },
         "required": ["song_uri"],
-    }  
+    }
     try:
         query = request.json
         validate(instance=query, schema=schema)
-        if User(context).add_song(query.get("song_uri")): 
-            return  "Success", 200
+        if User(context).add_song(query.get("song_uri")):
+            return "Success", 200
         return "Failure", 400
-    except:
-         return "Failure", 500
-    
-
+    except Exception as e:
+        logging.exception(e)
+        return "Failure", 500

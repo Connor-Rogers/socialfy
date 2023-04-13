@@ -8,12 +8,14 @@ cred = tk.Credentials(*conf)
 users = {}
 auths = {}
 # Authentication decorator
+
+
 def require_login(f):
     @wraps(f)
     def wrapper(*args, **kws):
         user = session.get('user', None)
         token = users.get(user, None)
-    
+
     # Return early if no login or old session
         if user is None or token is None:
             session.pop('user', None)
@@ -22,5 +24,5 @@ def require_login(f):
         if token.is_expiring:
             token = cred.refresh(token)
             users[user] = token
-        return f(token, *args, **kws)        
+        return f(token, *args, **kws)
     return wrapper

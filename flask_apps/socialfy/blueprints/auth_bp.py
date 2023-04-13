@@ -7,7 +7,8 @@ from flask import Blueprint, session
 from lib.session import cred, users, auths
 from flask import redirect, request
 
-auth = Blueprint("auth_bp",__name__)
+auth = Blueprint("auth_bp", __name__)
+
 
 @auth.route('/login', methods=['GET'])
 def login():
@@ -18,16 +19,17 @@ def login():
     '''
     if 'user' in session:
         return redirect('/secure/app', 307)
-    
-    scope =tk.Scope() + tk.scope.user_library_modify \
-    + tk.scope.user_read_currently_playing \
-    + tk.scope.user_read_private \
-    + tk.scope.user_top_read \
-    + tk.scope.playlist_modify_private \
-    + tk.scope.playlist_read_private
+
+    scope = tk.Scope() + tk.scope.user_library_modify \
+        + tk.scope.user_read_currently_playing \
+        + tk.scope.user_read_private \
+        + tk.scope.user_top_read \
+        + tk.scope.playlist_modify_private \
+        + tk.scope.playlist_read_private
     auth = tk.UserAuth(cred, scope)
     auths[auth.state] = auth
     return redirect(auth.url, 307)
+
 
 @auth.route('/callback', methods=['GET'])
 def login_callback():
@@ -45,6 +47,7 @@ def login_callback():
     session['user'] = state
     users[state] = token
     return redirect('/secure/app', 307)
+
 
 @auth.route('/secure/logout', methods=['GET'])
 def logout():

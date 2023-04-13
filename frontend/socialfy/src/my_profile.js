@@ -14,7 +14,7 @@ const MyProfile = ({ onClose }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('http://socialfy.rogersconnor.com/secure/user/self');
+      const response = await fetch('http://127.0.0.1:5000/secure/user/self');
       
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
@@ -29,7 +29,7 @@ const MyProfile = ({ onClose }) => {
 
   const fetchFriends = async () => {
     try {
-      const response = await fetch('http://socialfy.rogersconnor.com/secure/user/friends');
+      const response = await fetch('http://127.0.0.1:5000/secure/user/friends');
 
       if (!response.ok) {
         throw new Error('Failed to fetch friends');
@@ -44,7 +44,7 @@ const MyProfile = ({ onClose }) => {
   };
   const fetchOtherUser = async (friendId) => {
     try {
-      const response = await fetch("http://socialfy.rogersconnor.com/secure/user/other", {
+      const response = await fetch("http://127.0.0.1:5000/secure/user/other", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,7 +75,7 @@ const MyProfile = ({ onClose }) => {
 
   const removeFriend = async (friendId) => {
     try {
-      const response = await fetch('http://socialfy.rogersconnor.com/secure/user/friends/remove',{
+      const response = await fetch('http://127.0.0.1:5000/secure/user/friends/remove',{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

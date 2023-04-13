@@ -15,7 +15,7 @@ function App() {
 
   const fetchPosts = async (pageNumber) => {
     try {
-      const response = await fetch(`http://socialfy.rogersconnor.com/secure/feed/${pageNumber}`);
+      const response = await fetch(`http://127.0.0.1:5000/secure/feed/${pageNumber}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch posts');

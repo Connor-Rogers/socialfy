@@ -1,8 +1,11 @@
 from lib.db import DB, es, USER_INDEX
 from elasticsearch_dsl import Search
-import logging, datetime
+import logging
+import datetime
 import tekore as tk
 # User Profiles, Grab User infromation from spotify, db
+
+
 class User:
     """
     A class representing a user of the social media platform.
@@ -35,7 +38,8 @@ class User:
     add_song(song_uri:str) -> bool:
         Adds the song with the given URI to the current user's "Socialfy" playlist on Spotify.
     """
-    def __init__(self,token) -> None:
+
+    def __init__(self, token) -> None:
         """
         Initializes a new User instance with the provided access token.
         """
@@ -43,9 +47,8 @@ class User:
         self.datetime = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         self.user = self.spotify.current_user()
         self.token = token
-    
-    
-    def register_user(self) ->bool:
+
+    def register_user(self) -> bool:
         """
         Registers the current user in the platform's database.
 
@@ -54,31 +57,32 @@ class User:
         bool
             True if the user is successfully registered, False otherwise.
         """
-        s = Search(using = es, index = USER_INDEX) \
-                .query("match", id=self.user.id)
+        s = Search(using=es, index=USER_INDEX) \
+            .query("match", id=self.user.id)
         if s.execute().hits.total["value"] == 0:
-            
+
             user_profile = {
-                "id" :  self.user.id,
-                "date_time" : self.datetime,
+                "id":  self.user.id,
+                "date_time": self.datetime,
                 "display_name": self.user.display_name,
-                "friends" : []
-                }
+                "friends": []
+            }
             try:
                 playlists = self.spotify.playlists(user_id=self.user.id).items
                 has_playlist = False
                 for p in playlists:
                     if p.name == "Socialfy":
                         has_playlist = True
-                        break 
+                        break
                 if has_playlist:
-                    self.spotify.playlist_create(user_id=self.user.id, name="Socialfy", public=False, description="Your Liked Songs from Socialfy")
-            except:
-                logging.warn(f"unable to create playlist for user ")
+                    self.spotify.playlist_create(
+                        user_id=self.user.id, name="Socialfy", public=False, description="Your Liked Songs from Socialfy")
+            except Exception as e:
+                logging.exception(e)
             return DB.commit_document(USER_INDEX, user_profile)
         return False
-        
-    def purge_user(self) ->bool:
+
+    def purge_user(self) -> bool:
         """
         Deletes the current user's account from the platform's database.
 
@@ -105,34 +109,32 @@ class User:
             1 if the friend request cannot be sent.
             2 if the friend is already a friend of the user.
         """
-        
-        try:     
-            s = Search(using = es, index = USER_INDEX) \
+
+        try:
+            s = Search(using=es, index=USER_INDEX) \
                 .query("match", display_name=display_name)
             friend_id = s.execute()[0].id
-            
-            s = Search(using = es, index = USER_INDEX) \
+
+            s = Search(using=es, index=USER_INDEX) \
                 .query("match", id=self.user.id)
             result = s.execute()[0]
-            
-            
+
             friends = result.friends
             if friends is None:
                 friends = []
-                print(friends)
             elif friend_id in result.friends:
                 return 2
             friends.append(friend_id)
-            body={"doc": { "date_time" : result.date_time,
-                "display_name": result.display_name,
-                "friends" : list(friends)}}
-            es.update(index=USER_INDEX, id=result.meta.id, body = body)
+            body = {"doc": {"date_time": result.date_time,
+                            "display_name": result.display_name,
+                            "friends": list(friends)}}
+            es.update(index=USER_INDEX, id=result.meta.id, body=body)
             return 0
-        except:
-            logging.warn("Unable to add friend")
+        except Exception as e:
+            logging.exception(e)
             return 1
-        
-    def remove_friend(self, friend_id) ->int:
+
+    def remove_friend(self, friend_id) -> int:
         """
         This method searches for the current user in the Elasticsearch USER_INDEX, 
         and removes the specified friend_id from the user's friend list if it exists.
@@ -147,42 +149,40 @@ class User:
         1: Error - Unable to remove friend (Logged warning).
         2: Failure - Friend ID not found in the user's friend list.
         """
-        # try:
-        s = Search(using = es, index = USER_INDEX) \
-            .query("match", id=self.user.id)
-        result = s.execute()[0]
-        friends = result.friends
-        if friend_id not in friends:
-            return 2
-        friends.remove(friend_id)
-        print(friends)
-        body={"doc": { "date_time" : result.date_time,
-                "display_name": result.display_name,
-                "friends" : list(friends)}}
-        es.update(index=USER_INDEX, id=result.meta.id, body = body)
-        return 0
-        # except:
-        #     logging.warn("Unable to remove friend")
-        #     return 1
-    
+        try:
+            s = Search(using=es, index=USER_INDEX) \
+                .query("match", id=self.user.id)
+            result = s.execute()[0]
+            friends = result.friends
+            if friend_id not in friends:
+                return 2
+            friends.remove(friend_id)
+            body = {"doc": {"date_time": result.date_time,
+                            "display_name": result.display_name,
+                            "friends": list(friends)}}
+            es.update(index=USER_INDEX, id=result.meta.id, body=body)
+            return 0
+        except Exception as e:
+            logging.exception(e)
+            return 1
+
     def get_friends(self) -> list:
         '''
         Get the list of friends for the current user from Elasticsearch.
-        
+
         Returns:
             list: A list of friend objects.
         '''
         try:
-            s = Search(using = es, index = USER_INDEX) \
-                        .query("match", id = self.user.id)
+            s = Search(using=es, index=USER_INDEX) \
+                .query("match", id=self.user.id)
             response = s.execute()
             if response.hits.total["value"] == 0:
                 return []
-            print(list(response[0].friends))
             return list(response[0].friends)
-        except:
-             logging.warn("unable to get friends")
-             return []
+        except Exception as e:
+            logging.exception(e)
+            return []
 
     def get_friend_id(self) -> str:
         '''
@@ -192,11 +192,11 @@ class User:
         '''
 
         try:
-            return self.user.id  
-        except:
-            logging.warn("unable to get friend id")
+            return self.user.id
+        except Exception as e:
+            logging.exception(e)
             return None
-    
+
     def add_song(self, song_uri) -> bool:
         """
         Add a song with the specified URI to the "Socialfy" playlist of the current user.
@@ -206,21 +206,18 @@ class User:
         bool: True if the song was added successfully, False otherwise.
         """
         playlist_id = None
-        playlists = self.spotify.playlists(user_id=self.user.id).items
-        for p in playlists:
-            if p.name == "Socialfy":
-                playlist_id = p.id
-                break
-        if playlist_id is None:
-            return False
         try:
+            playlists = self.spotify.playlists(user_id=self.user.id).items
+            for p in playlists:
+                if p.name == "Socialfy":
+                    playlist_id = p.id
+                    break
+            if playlist_id is None:
+                return False
             song_list = []
             song_list.append(song_uri)
-            self.spotify.playlist_add(playlist_id= playlist_id, uris=song_list)
-            return True 
-        except:
-            return False 
-                
-
-
- 
+            self.spotify.playlist_add(playlist_id=playlist_id, uris=song_list)
+            return True
+        except Exception as e:
+            logging.exception(e)
+            return False
