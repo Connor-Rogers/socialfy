@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, useNavigate } from 'react-router-dom';
 import './App.css';
 import Feed from './feed';
 import CreatePost from './create_post';
@@ -8,7 +9,8 @@ function App() {
   const [posts, setPosts] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [page, setPage] = useState(0);
-  
+  const navigate = useNavigate();
+
   const deletePost = (postId) => {
     setPosts(posts.filter((post) => post.id !== postId));
   };
@@ -33,6 +35,10 @@ function App() {
     fetchPosts(page);
   }, []);
 
+  const handleLogout = () => {
+    navigate('/secure/logout');
+    window.location.reload();
+  };
   return (
     <div className="app">
       <h1>Socialfy</h1>
@@ -48,8 +54,9 @@ function App() {
             <MyProfile onClose={() => setShowProfile(false)} />
           </div>
         )}
+        <button className="logout" onClick={handleLogout}>Logout</button>
       </header>
-      <Feed posts={posts} fetchPosts={() => fetchPosts(page)} onDeletePost={deletePost}/>
+      <Feed posts={posts} fetchPosts={() => fetchPosts(page)} onDeletePost={deletePost} />
     </div>
   );
 };

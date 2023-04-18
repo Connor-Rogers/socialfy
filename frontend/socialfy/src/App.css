@@ -107,3 +107,18 @@ button:hover {
   left: -.55rem;
   bottom: 1rem;
 }
+
+.logout {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 25px;
+  background-color: #db372d;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-left: 1rem;
+  position: relative;
+  left: 9rem;
+  top: -14rem;
+}
