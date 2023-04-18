@@ -42,7 +42,7 @@ function App() {
           setPage(0);
           fetchPosts(0);
         }} />
-        <button onClick={() => setShowProfile(true)}>My Profile</button>
+        <button class="enter_profile" onClick={() => setShowProfile(true)}>My Profile</button>
         {showProfile && (
           <div className="overlay">
             <MyProfile onClose={() => setShowProfile(false)} />

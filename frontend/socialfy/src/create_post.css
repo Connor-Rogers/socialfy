@@ -3,6 +3,8 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    position: relative;
+    left: -1rem;
   }
   
   .create-post input {
@@ -28,8 +30,12 @@
 
   .search {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: stretch;
+    
+  }
+  .input {
+    position: relative;
+    left: 1rem;
   }
   
   .search input {

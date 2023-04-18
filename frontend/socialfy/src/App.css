@@ -101,3 +101,9 @@ button:hover {
     width: 100%;
   }
 }
+
+.enter_profile {
+  position: relative;
+  left: -.55rem;
+  bottom: 1rem;
+}
